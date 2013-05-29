@@ -116,21 +116,22 @@ vector<int> Dijkstra_cmp(int s){
 vector<int> sqrt_d;
 int sqrt_n;
 void sqrt_init(int v){
-	sqrt_n = sqrt(N*0.3);
+	sqrt_n = max(1., sqrt(N*0.5));
 	sqrt_d.assign(N/sqrt_n+1, INF2);
 	sqrt_d[v/sqrt_n] = 0;
 }
 int sqrt_get(vector<int> &d, vector<int> &f){
-	int v = -1, i, t=0, c=1, dt;
+	int v = -1, i, t=0, dt;
 	for(i=1;i<(int)sqrt_d.size();++i)
 		if(sqrt_d[t] > sqrt_d[i]) t=i;
 	int l = t*sqrt_n, r = min(l+sqrt_n, N);
 	dt = sqrt_d[t];
 	sqrt_d[t] = INF2;
-	for(i=l; i<r; ++i){
-		if(!f[i] && c && dt==d[i]) f[i]=1, c=0, v=i;
-		if(!f[i]) sqrt_d[t] = min(sqrt_d[t], d[i]);
-	}
+	for(i=l; i<r; ++i)
+		if(!f[i]){
+			if(dt==d[i]) f[i]=1, --dt, v=i;
+			else sqrt_d[t] = min(sqrt_d[t], d[i]);
+		}
 	return v;
 }
 vector<int> Dijkstra_sqrt(int s){
