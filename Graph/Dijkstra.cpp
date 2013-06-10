@@ -63,97 +63,107 @@ vector<int> Dijkstra_emax(int s){
 	}
 	return d;
 }
-vector<int> heap, heap_p;
-void heap_pop(vector<int> &d){
-	heap_p[heap[1]] = 0;
-	heap[1] = heap[heap[0]];
-	heap[0]--;
-	int t = heap[1], a = 1, mn;
-	while(2*a <= heap[0]){
+vector<int> dijkstra_heap, dijkstra_heap_p, dijkstra_d;
+void dijkstra_pop(){
+	dijkstra_heap_p[dijkstra_heap[1]] = 0;
+	dijkstra_heap[1] = dijkstra_heap[dijkstra_heap[0]--];
+	int t = dijkstra_heap[1], a = 1, mn;
+	while(2*a <= dijkstra_heap[0]){
 		mn = 2*a;
-		if(mn+1<=heap[0] && d[heap[mn+1]] < d[heap[mn]]) mn++;
-		if(d[heap[mn]] < d[t]){
-			heap[a] = heap[mn];
-			heap_p[heap[a]] = a;
+		if(mn+1<=dijkstra_heap[0] &&
+		   dijkstra_d[dijkstra_heap[mn+1]] < dijkstra_d[dijkstra_heap[mn]])
+			mn++;
+		if(dijkstra_d[dijkstra_heap[mn]] < dijkstra_d[t]){
+			dijkstra_heap[a] = dijkstra_heap[mn];
+			dijkstra_heap_p[dijkstra_heap[a]] = a;
 			a = mn;
 		}else break;
 	}
-	heap[a] = t;
-	heap_p[t] = a;
+	dijkstra_heap[a] = t;
+	dijkstra_heap_p[t] = a;
 }
-void heap_relax(int v, vector<int> &d){
-	if(heap_p[v] == 0) heap[++heap[0]] = v, heap_p[v] = heap[0];
-	int a = heap_p[v];
+void dijkstra_relax(int v){
+	if(dijkstra_heap_p[v] == 0)
+		dijkstra_heap[++dijkstra_heap[0]] = v, dijkstra_heap_p[v] = dijkstra_heap[0];
+	int a = dijkstra_heap_p[v];
 	while(a>1)
-		if(d[heap[a>>1]] > d[v]){
-			heap[a] = heap[a>>1];
-			heap_p[heap[a]] = a;
+		if(dijkstra_d[dijkstra_heap[a>>1]] > dijkstra_d[v]){
+			dijkstra_heap[a] = dijkstra_heap[a>>1];
+			dijkstra_heap_p[dijkstra_heap[a]] = a;
 			a >>= 1;
 		}else break;
-	heap[a] = v;
-	heap_p[v] = a;
+	dijkstra_heap[a] = v;
+	dijkstra_heap_p[v] = a;
 }
 vector<int> Dijkstra_cmp(int s){
-	vector<int> d(N, INF2);
-	d[s] = 0;
-	heap.assign(N+1,0); heap[0] = 1; heap[1] = s;
-	heap_p.assign(N, 0); heap_p[s] = 1;
-	while(heap[0]){
-		int v = heap[1];
-		heap_pop(d);
+	dijkstra_d.assign(N, INF2);
+	dijkstra_d[s] = 0;
+	dijkstra_heap.assign(N+1,0);
+	dijkstra_heap[0] = 1;
+	dijkstra_heap[1] = s;
+	dijkstra_heap_p.assign(N, 0);
+	dijkstra_heap_p[s] = 1;
+	while(dijkstra_heap[0]){
+		int v = dijkstra_heap[1];
+		dijkstra_pop();
 		for(int j=0;j<(int)g[v].size();++j){
 			int to = g[v][j].first,
 				len = g[v][j].second;
-			if(d[v]+len < d[to]){
-				d[to] = d[v] + len;
-				heap_relax(to, d);
+			if(dijkstra_d[v]+len < dijkstra_d[to]){
+				dijkstra_d[to] = dijkstra_d[v] + len;
+				dijkstra_relax(to);
 			}
 		}
 	}
-	return d;
+	return dijkstra_d;
 }
 
-vector<int> sqrt_d;
-int sqrt_n;
-void sqrt_init(int v){
-	sqrt_n = max(1., sqrt(N*0.5));
-	sqrt_d.assign(N/sqrt_n+1, INF2);
-	sqrt_d[v/sqrt_n] = 0;
+vector<int> dijkstra_f, dijkstra_sqrt_d;
+int dijkstra_sqrt_n;
+
+void dijkstra_init(int v){
+	dijkstra_sqrt_n = max(1., sqrt(N*0.5));
+	dijkstra_sqrt_d.assign(N/dijkstra_sqrt_n+1, INF2);
+	dijkstra_sqrt_d[v/dijkstra_sqrt_n] = 0;
 }
-int sqrt_get(vector<int> &d, vector<int> &f){
+
+int dijkstra_get(){
 	int v = -1, i, t=0, dt;
-	for(i=1;i<(int)sqrt_d.size();++i)
-		if(sqrt_d[t] > sqrt_d[i]) t=i;
-	int l = t*sqrt_n, r = min(l+sqrt_n, N);
-	dt = sqrt_d[t];
-	sqrt_d[t] = INF2;
+	for(i=1;i<(int)dijkstra_sqrt_d.size();++i)
+		if(dijkstra_sqrt_d[t] > dijkstra_sqrt_d[i]) t=i;
+	int l = t*dijkstra_sqrt_n, r = min(l+dijkstra_sqrt_n, N);
+	dt = dijkstra_sqrt_d[t];
+	dijkstra_sqrt_d[t] = INF2;
 	for(i=l; i<r; ++i)
-		if(!f[i]){
-			if(dt==d[i]) f[i]=1, --dt, v=i;
-			else sqrt_d[t] = min(sqrt_d[t], d[i]);
-		}
+		if(!dijkstra_f[i]){
+		if(dt==dijkstra_d[i]) dijkstra_f[i]=1, --dt, v=i;
+		else dijkstra_sqrt_d[t] = min(dijkstra_sqrt_d[t], dijkstra_d[i]);
+	}
 	return v;
 }
-vector<int> Dijkstra_sqrt(int s){
-	vector<int> d(N, INF2), f(N, 0);
-	d[s] = 0;
-	sqrt_init(s);
+
+vector<int> Dijkstra(int s){
+	dijkstra_d.assign(N, INF2);
+	dijkstra_f.assign(N, 0);
+	dijkstra_d[s] = 0;
+	dijkstra_init(s);
 	int i, j, v, to, len;
 	for(i=0;i<N;++i){
-		v = sqrt_get(d, f);
-		if(v<0 || d[v] >= INF2) break;
+		v = dijkstra_get();
+		if(v<0 || dijkstra_d[v] >= INF2) break;
 		for(j=0; j<(int)g[v].size(); ++j){
 			to = g[v][j].first;
 			len = g[v][j].second;
-			if(d[v] + len < d[to]){
-				d[to] = d[v] + len;
-				if(sqrt_d[to/sqrt_n] > d[to])
-					sqrt_d[to/sqrt_n] = d[to];
+			if(dijkstra_d[v] + len < dijkstra_d[to]){
+				dijkstra_d[to] = dijkstra_d[v] + len;
+				if(dijkstra_sqrt_d[to/dijkstra_sqrt_n] > dijkstra_d[to])
+					dijkstra_sqrt_d[to/dijkstra_sqrt_n] = dijkstra_d[to];
 			}
 		}
 	}
-	return d;
+	return dijkstra_d;
 }
+
 #define Ntest 1000
 int main()
 {
@@ -193,14 +203,14 @@ int main()
 	st = clock();
 	vector<int> res3;
 	for(i=0;i<Ntest;i++){
-		res3 = Dijkstra_sqrt(i);
+		res3 = Dijkstra(i);
 		//printf("%d ", res3[0]);// fflush(stdout);
 	}
 	printf("sqrt: %0.5lf\n", (clock()-st)/(double)CLOCKS_PER_SEC);
 
-	//int fail = 0;
-	//for(i=0;i<N;++i) if(res3[i] != res2[i]) fail++;
-	//printf("Fail: %d", fail);
+	int fail = 0;
+	for(i=0;i<N;++i) if(res3[i] != res2[i]) fail++;
+	printf("Fail: %d", fail);
 
 	return 0;
 }
