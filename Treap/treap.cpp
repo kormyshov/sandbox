@@ -7,83 +7,111 @@
 #include <cmath>
 using namespace std;
 
-struct w{
-	int x, y, n;
-	w *l, *r, *p;
+struct ct_node{
+	int x, y;
+	ct_node *l, *r;
+    //ct_node *p;
 };
-typedef w* pw;
+typedef ct_node* p_ct_node;
 
-void merge(pw &t, pw l, pw r){
-	if(!l || !r) t = l ? l : r;
-	else if(l->y < r->y)
-		merge(l->r, l->r, r), t = l;
+void merge(p_ct_node &_t, p_ct_node _l, p_ct_node _r){
+	if(!_l || !_r) _t = _l ? _l : _r;
+	else if(_l->y < _r->y)
+		merge(_l->r, _l->r, _r), _t = _l;
 	else
-		merge(r->l, l, r->l), t = r;
+		merge(_r->l, _l, _r->l), _t = _r;
 }
 
-pw build(vector<pair<pair<int,int>,int> > &v){
-	pw t, last, tmp;
-	t = new w;
-	t->x = v[0].first.first;
-	t->y = v[0].first.second;
-	t->n = v[0].second;
-	t->l = t->r = t->p = NULL;
-	last = t;
-	for(int i=1;i<(int)v.size();++i){
-		tmp = new w;
-		tmp->x = v[i].first.first;
-		tmp->y = v[i].first.second;
-		tmp->n = v[i].second;
-		tmp->l = tmp->r = tmp->p = NULL;
-		while(last && last->y > tmp->y) last = last->p;
-		if(!last){
-			tmp->l = t;
-			t->p = tmp;
-			last = t = tmp;
-		}else{
-			tmp->l = last->r;
-			if(last->r) last->r->p = tmp;
-			last->r = tmp;
-			tmp->p = last;
-			last = tmp;
-		}
+void split(p_ct_node _t, int _x, p_ct_node &_l, p_ct_node &_r) {
+	if (!_t)
+		_l = _r = NULL;
+	else if (_x < _t->x)
+		split(_t->l, _x, _l, _t->l),  _r = _t;
+	else
+		split(_t->r, _x, _t->r, _r),  _l = _t;
+}
+
+p_ct_node search(p_ct_node &_t, int _x){
+	if(!_t) return NULL;
+	p_ct_node res;
+	if(_x < _t->x){
+		res = search(_t->l, _x);
+		if(!res) return _t;
+		else return res;
 	}
-	return t;
+	if(_x > _t->x) return search(_t->r, _x);
+	return _t;
 }
 
-
-vector<pair<int,pair<int,pw> > > res;
-void print(pw t, int p){
-	if(!t) return ;
-	res.push_back(make_pair(t->n, make_pair(p, t)));
-	print(t->l, t->n);
-	print(t->r, t->n);
+void insert(p_ct_node &_t, p_ct_node _it){
+	if(!_t){
+		_t = _it;
+	}else if(_it->y > _t->y){
+		split(_t, _it->x, _it->l, _it->r);
+		_t = _it;
+	}else
+		insert(_it->x < _t->x ? _t->l : _t->r, _it);
 }
 
+void insert(p_ct_node &_t, int _x, int _y){
+	p_ct_node _it = new ct_node;
+	_it->x = _x; _it->y = _y;
+	_it->l = _it->r = NULL;
+	insert(_t, _it);
+}
+
+void insert(p_ct_node &_t, int _x){
+	insert(_t, _x, rand());
+}
+
+//p_ct_node build(vector<pair<int,int> > &_v){
+	//p_ct_node _t, _last, _tmp;
+	//_t = new ct_node;
+	//_t->x = _v[0].first;
+	//_t->y = _v[0].second;
+	//_t->l = _t->r = _t->p = NULL;
+	//_last = _t;
+	//for(int i=1;i<(int)_v.size();++i){
+		//_tmp = new ct_node;
+		//_tmp->x = _v[i].first;
+		//_tmp->y = _v[i].second;
+		//_tmp->l = _tmp->r = _tmp->p = NULL;
+		//while(_last && _last->y > _tmp->y)
+			//_last = _last->p;
+		//if(!_last){
+			//_tmp->l = _t;
+			//_t->p = _tmp;
+			//_last = _t = _tmp;
+		//}else{
+			//_tmp->l = _last->r;
+			//if(_last->r) _last->r->p = _tmp;
+			//_last->r = _tmp;
+			//_tmp->p = _last;
+			//_last = _tmp;
+		//}
+	//}
+	//return _t;
+//}
 int main(){
-	int N, a, b;
-	scanf("%d", &N);
-	pw t;
-	vector<pair<pair<int,int>,int> > v;
-	v.reserve(N);
-	res.reserve(N);
-	for(int i=0; i<N; ++i){
-		scanf("%d%d", &a, &b);
-		v.push_back(make_pair(make_pair(a, b), i+1));
-	}
-	sort(v.begin(), v.end());
-	t = build(v);
+	ios_base::sync_with_stdio(0);
 
-	cout<<"YES\n";
-
-	print(t, 0);
-	sort(res.begin(), res.end());
-	for(int i=0;i<N;++i) {
-		printf("%d ", res[i].second.first);
-		t = res[i].second.second;
-		if(t->l) printf("%d ", t->l->n); else printf("0 ");
-		if(t->r) printf("%d ", t->r->n); else printf("0 ");
-		cout<<endl;
+	int n;
+	cin>>n;
+	char c;
+	int a, p=0, tmp;
+	p_ct_node ct = NULL;
+	for(int i=0; i<n; ++i){
+		cin>>c>>a;
+		if(c=='?'){
+			p_ct_node t = search(ct, a);
+			if(!t) printf("-1\n"), p=-1;
+			else printf("%d\n", t->x), p=t->x;
+		}else{
+			tmp = (a+p)%1000000000;
+			p_ct_node t = search(ct, tmp);
+			if(!t || t->x != tmp) insert(ct, tmp);
+			p=0;
+		}
 	}
 
 	return 0;

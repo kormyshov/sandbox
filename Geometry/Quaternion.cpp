@@ -22,6 +22,77 @@ public:
 	inline void set(const Point &a){
 		x = a.get_x(); y = a.get_y();
 	}
+
+	inline double length() const {
+		return sqrt(x*x+y*y+.0);
+	}
+
+	inline Point operator-=(const Point &a){
+		x -= a.get_x(); y -= a.get_y();
+		return *this;
+	}
+	inline Point operator-(const Point &a) const {
+		Point res(*this);
+		res -= a;
+		return res;
+	}
+
+	inline Point operator-() const {
+		return Point(-x, -y);
+	}
+
+	inline Point operator+=(const Point &a){
+		x += a.get_x(); y += a.get_y();
+		return *this;
+	}
+	inline Point operator+(const Point &a) const {
+		Point res(*this);
+		res += a;
+		return res;
+	}
+
+	inline double scalar(const Point &a) const {
+		return x*a.get_x() + y*a.get_y();
+	}
+	inline double operator%(const Point &a) const {
+		return scalar(a);
+	}
+
+	inline double operator*(const Point &a) const {
+		return x*a.get_y() - y*a.get_x();
+	}
+
+	inline Point operator*(double k) const {
+		return Point(x*k, y*k);
+	}
+	inline friend Point operator*(const double k, const Point &a){
+		return a*k;
+	}
+	inline Point operator*=(double k){
+		x *= k; y *= k;
+		return *this;
+	}
+	inline Point operator/(double k) const {
+		return Point(x/k, y/k);
+	}
+	inline Point operator/=(double k){
+		x /= k; y /= k;
+		return *this;
+	}
+	inline Point& operator=(const Point &a){
+		x = a.get_x(); y = a.get_y();
+		return *this;
+	}
+
+	friend istream& operator>>(istream& in, Point &a){
+		double x, y;
+		in>>x>>y;
+		a.set(x, y);
+		return in;
+	}
+	friend ostream& operator<<(ostream& out, const Point &a){
+		return out<<a.get_x()<<" "<<a.get_y();
+	}
 };
 
 class Point3D{
@@ -101,6 +172,28 @@ public:
 	inline Point3D operator*=(double k){
 		x *= k; y*=k; z*=k;
 		return *this;
+	}
+	inline Point3D operator/(double k) const {
+		return Point3D(x/k, y/k, z/k);
+	}
+	inline Point3D operator/=(double k){
+		x /= k; y/=k; z/=k;
+		return *this;
+	}
+
+	inline Point3D& operator=(const Point3D &a){
+		x = a.get_x(); y = a.get_y(); z = a.get_z();
+		return *this;
+	}
+
+	friend istream& operator>>(istream& in, Point3D &a){
+		double x, y, z;
+		in>>x>>y>>z;
+		a.set(x, y, z);
+		return in;
+	}
+	friend ostream& operator<<(ostream& out, const Point3D &a){
+		return out<<a.get_x()<<" "<<a.get_y()<<" "<<a.get_z();
 	}
 };
 
@@ -219,5 +312,10 @@ int main(){
 	Quaternion q;
 	double s=2.0;
 	Quaternion p = s*q;
+
+	Point a, b;
+	cin>>a>>b;
+	cout<<a<<" "<<b<<" "<<a*b;
+
 	return 0;
 }
