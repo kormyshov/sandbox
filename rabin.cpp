@@ -74,7 +74,7 @@ LL powmod(LL a, LL b, LL m)
 }
 bool rabin($1 n){
 	if(n==2) return true;
-	if(n<2 || !(n&1)) return false;
+	if(n<2 || (n>3 && (n%6&3)!=1)) return false;
 	$1 q = n-1, a = 2+rand()%(n-2);
 	if(powmod(a, n-1, n)!=1 || gcd(a, n)!=1) return false;
 	while(!(q&1)) q>>=1;
@@ -87,7 +87,7 @@ bool rabin($1 n){
 }
 bool rabin1($1 n){
 	if(n==2) return true;
-	if(n<2 || !(n&1)) return false;
+	if(n<2 || (n>3 && (n%6&3)!=1)) return false;
 	$1 q = n-1, a = 2+rand()%(n-2), t=0;
 	if(powmod(a, n-1, n)!=1 || gcd(a, n)!=1) return false;
 	while(!(q&1)) q>>=1, ++t;
@@ -106,7 +106,7 @@ inline bool isPrime($1 _n)
 		if(_n%_i==0) return false;
 	return true;
 }
-#define N 1000000
+#define N 5000000
 int main()
 {
 	//ios_base::sync_with_stdio(0);
@@ -117,10 +117,10 @@ int main()
 	srand(time(0));
 	int m[4];
 	memset(m, 0, sizeof(m));
-	for(int i=1;i<1000000;++i){
+	for(int i=1;i<5000000;++i){
 		int t1 = isPrime(i);
 		int t2 = rabin1(i);
-		if(t2) t2 &= rabin1(i);
+		//if(t2) t2 &= rabin1(i);
 		++m[t1<<1|t2];
 	}
 	for(int i=0;i<4;++i) cout<<m[i]<<" ";
